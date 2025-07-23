@@ -1,0 +1,4 @@
+pygame==2.6.1
+PyYAML==6.0.2
+roslibpy==1.5.1
+websocket-client==1.8.0

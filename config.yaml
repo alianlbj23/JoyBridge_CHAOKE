@@ -1,0 +1,47 @@
+wheel_order: [FL, FR, RL, RR]
+
+buttons:
+  A:      [0.0, 0.0, 0.0, 0.0]
+  B:      [0.0, 0.0, 0.0, 0.0]
+  X:      [0.0, 0.0, 0.0, 0.0]
+  Y:      [0.0, 0.0, 0.0, 0.0]
+  RB:     [0.0, 0.0, 0.0, 0.0]
+  LB:     [0.0, 0.0, 0.0, 0.0]
+  Start:  [0.0, 0.0, 0.0, 0.0]
+  Back:   [0.0, 0.0, 0.0, 0.0]
+  LStick: [0.0, 0.0, 0.0, 0.0]
+
+axes_angle_map:
+  left_stick:
+    deadzone: 0.15
+    rules:
+      - range: [-30.0, 30.0]
+        speed: [30.0, -30.0, 30.0, -30.0]
+      - range: [31.0, 130.0]
+        speed: [30.0, 30.0, 30.0, 30.0]
+      - range: [140.0, 200.0]
+        speed: [-30.0, 30.0, -30.0, 30.0]
+      - range: [210.0, 300.0]
+        speed: [-30.0, -30.0, -30.0, -30.0]
+
+  right_stick:
+    deadzone: 0.15
+    rules:
+      - range: [-30.0, 30.0]
+        speed: [30.0, -30.0, 30.0, -30.0]
+      - range: [31.0, 130.0]
+        speed: [30.0, 30.0, 30.0, 30.0]
+      - range: [140.0, 200.0]
+        speed: [-30.0, 30.0, -30.0, 30.0]
+      - range: [210.0, 300.0]
+        speed: [-30.0, -30.0, -30.0, -30.0]
+
+rosbridge:
+  host: 127.0.0.1
+  port: 9090
+
+ros_topics:
+  - name: /car_C_front_wheel
+    indices: [0, 1]
+  - name: /car_C_rear_wheel
+    indices: [2, 3]
