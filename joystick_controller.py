@@ -35,6 +35,16 @@ class JoystickController:
 
     def _handle_button_down(self, event, ros_pub):
         name = BTN_MAP.get(event.button, f"BTN{event.button}")
+        
+        # 處理機械手臂按鈕 (A 和 Y)
+        if name in ['A', 'Y'] and 'robot_arm_joints' in self.cfg:
+            if name in self.cfg['robot_arm_joints']:
+                joint_angles = self.cfg['robot_arm_joints'][name]
+                ros_pub.send_arm_joints(joint_angles)
+                print(f"[ARM BTN] {name} -> {joint_angles}°")
+                return
+        
+        # 處理車輪控制按鈕
         if name in self.cfg['buttons']:
             self.current_vec = self.cfg['buttons'][name]
             ros_pub.send(self.current_vec)

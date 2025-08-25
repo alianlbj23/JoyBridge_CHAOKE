@@ -21,7 +21,11 @@ class JoyToRosApp:
             time.sleep(0.1)
         print(f"Connected to rosbridge ws://{self.cfg['rosbridge']['host']}:{self.cfg['rosbridge']['port']}")
 
-        self.ros_pub = RosPublisher(self.ros_client, self.cfg['ros_topics'])
+        self.ros_pub = RosPublisher(
+            self.ros_client, 
+            self.cfg['ros_topics'],
+            self.cfg.get('robot_arm_topic')
+        )
 
         try:
             while True:

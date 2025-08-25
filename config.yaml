@@ -15,6 +15,11 @@ buttons:
   Back:   [0.0, 0.0, 0.0, 0.0]
   LStick: [0.0, 0.0, 0.0, 0.0]   # 左搖桿按壓
 
+# 機械手臂關節角度配置 (角度以度為單位，發布時會轉換為弧度)
+robot_arm_joints:
+  A:      [0.0, 30.0, -45.0, 90.0, 0.0]    # A鍵：預設位置1 (5軸角度)
+  Y:      [45.0, -30.0, 60.0, -90.0, 180.0] # Y鍵：預設位置2 (5軸角度)
+
 # 搖桿角度映射 (角度區間 → 車輪速度)
 axes_angle_map:
   left_stick:
@@ -67,3 +72,8 @@ ros_topics:
     indices: [0, 1]   # 綁定前輪 (FL, FR)
   - name: /car_C_rear_wheel
     indices: [2, 3]   # 綁定後輪 (RL, RR)
+
+# 機械手臂 ROS Topic 設定
+robot_arm_topic:
+  name: /robot_arm
+  msg_type: trajectory_msgs/JointTrajectoryPoint
