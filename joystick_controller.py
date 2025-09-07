@@ -26,6 +26,10 @@ class JoystickController:
         self.last_axes = [0.0] * self.joystick.get_numaxes()
         self.current_vec = [0.0, 0.0, 0.0, 0.0]
 
+        # 初始化 AY 軸角度
+        self.ay_axis_angle = self.cfg.get('robot_arm_control', {}).get('ay_axis_initial_angle', 0.0)
+        self.last_ay_button = None
+
     def process_events(self, ros_pub):
         for e in pygame.event.get():
             if e.type == pygame.JOYBUTTONDOWN:
@@ -39,11 +43,30 @@ class JoystickController:
         # 處理機械手臂按鈕 (A 和 Y)
         if name in ['A', 'Y'] and 'robot_arm_joints' in self.cfg:
             if name in self.cfg['robot_arm_joints']:
-                joint_angles = self.cfg['robot_arm_joints'][name]
+                self.last_ay_button = name
+                joint_angles = self.cfg['robot_arm_joints'][name][:]
+                joint_angles[-1] = self.ay_axis_angle
                 ros_pub.send_arm_joints(joint_angles)
                 print(f"[ARM BTN] {name} -> {joint_angles}°")
                 return
-        
+
+        # 處理X, B 手臂角度調整
+        if name in ['X', 'B'] and 'robot_arm_control' in self.cfg and self.last_ay_button:
+            control_cfg = self.cfg['robot_arm_control']
+            increment = control_cfg.get('angle_increment', 10.0)
+            decrement = control_cfg.get('angle_decrement', -10.0)
+            
+            if name == 'B':
+                self.ay_axis_angle += increment
+            elif name == 'X':
+                self.ay_axis_angle += decrement
+
+            joint_angles = self.cfg['robot_arm_joints'][self.last_ay_button][:]
+            joint_angles[-1] = self.ay_axis_angle
+            ros_pub.send_arm_joints(joint_angles)
+            print(f"[ARM BTN] {name} -> New Angle: {self.ay_axis_angle}°")
+            return
+
         # 處理車輪控制按鈕
         if name in self.cfg['buttons']:
             self.current_vec = self.cfg['buttons'][name]

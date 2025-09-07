@@ -20,6 +20,12 @@ robot_arm_joints:
   A:      [0.0, 30.0, -45.0, 90.0, 0.0]    # A鍵：預設位置1 (5軸角度)
   Y:      [45.0, -30.0, 60.0, -90.0, 180.0] # Y鍵：預設位置2 (5軸角度)
 
+# 機械手臂手動控制設定
+robot_arm_control:
+  ay_axis_initial_angle: 0.0  # AY最後一軸的初始角度
+  angle_increment: 10.0         # 按B鍵時增加的角度
+  angle_decrement: -10.0        # 按X鍵時減少的角度
+
 # 搖桿角度映射 (角度區間 → 車輪速度)
 axes_angle_map:
   left_stick:
