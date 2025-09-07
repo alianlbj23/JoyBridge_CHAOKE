@@ -1,8 +1,9 @@
 import pygame
 from utils import Utils, DEADZONE_DEFAULT
 
+# btn mapping
 BTN_MAP = {
-    0: "A", 1: "B", 2: "X", 3: "Y",
+    0: "B", 1: "Y", 2: "A", 3: "X",
     4: "LB", 5: "RB", 6: "Back", 7: "Start",
     8: "Guide", 9: "LStick", 10: "RStick",
 }
@@ -15,6 +16,12 @@ class JoystickController:
         self.cfg = cfg
         pygame.init()
         pygame.joystick.init()
+
+        print("Detected Joysticks:")
+        for i in range(pygame.joystick.get_count()):
+            joystick = pygame.joystick.Joystick(i)
+            joystick.init()
+            print(f"  Joystick {i}: {joystick.get_name()}")
 
         if pygame.joystick.get_count() == 0:
             raise RuntimeError("沒有偵測到任何搖桿/控制器")
