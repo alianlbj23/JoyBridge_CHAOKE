@@ -16,6 +16,15 @@ This project provides a bridge to control a robot using a joystick through ROS. 
    pip install -r requirements.txt
    ```
 
+## Architecture
+
+The JoyBridge application works as follows:
+
+1.  **Joystick Input**: It captures events from a connected joystick.
+2.  **Command Mapping**: Based on the `config.yaml` file, these events (button presses and axis movements) are mapped to specific commands for the robot's wheels or robotic arm.
+3.  **ROSBridge Communication**: The mapped commands are then sent as messages to a `rosbridge_server` via a WebSocket connection. This allows the application to communicate with the ROS ecosystem without being a native ROS node itself.
+4.  **ROS Topics**: The `rosbridge_server` then publishes these messages to the appropriate ROS topics, which are subscribed to by the robot's control nodes.
+
 ## Configuration
 
 - **`config.yaml`**: This file contains all the configuration for button mappings, axis controls, and ROS topic names. Modify this file to suit your robot's setup.
