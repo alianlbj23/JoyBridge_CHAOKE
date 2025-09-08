@@ -17,14 +17,16 @@ buttons:
 
 # 機械手臂關節角度配置 (角度以度為單位，發布時會轉換為弧度)
 robot_arm_joints:
-  A:      [0.0, 30.0, -45.0, 90.0, 0.0]    # A鍵：預設位置1 (5軸角度)
-  Y:      [45.0, -30.0, 60.0, -90.0, 180.0] # Y鍵：預設位置2 (5軸角度)
+  A:      [90.0, 30.0, 160.0]    # A鍵：預設位置1 (5軸角度)
+  Y:      [50.0, 60.0, 60.0] # Y鍵：預設位置2 (5軸角度)
 
 # 機械手臂手動控制設定
 robot_arm_control:
   ay_axis_initial_angle: 0.0  # AY最後一軸的初始角度
   angle_increment: 10.0         # 按B鍵時增加的角度
-  angle_decrement: -10.0        # 按X鍵時減少的角度
+  angle_decrement: -10.0        # 按X鍵時減少的角度d
+  ay_axis_max_angle: 90.0       # AY軸的最大角度
+  ay_axis_min_angle: 0.0      # AY軸的最小角度
 
 # 搖桿角度映射 (角度區間 → 車輪速度)
 axes_angle_map:
@@ -77,7 +79,7 @@ ros_topics:
   - name: /car_C_front_wheel
     indices: [0, 1]   # 綁定前輪 (FL, FR)
   - name: /car_C_rear_wheel
-    indices: [2, 3]   # 綁定後輪 (RL, RR)
+    indices: [0,1, 2, 3]   # 綁定後輪 (RL, RR)
 
 # 機械手臂 ROS Topic 設定
 robot_arm_topic:

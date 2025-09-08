@@ -3,8 +3,8 @@ from utils import Utils, DEADZONE_DEFAULT
 
 # btn mapping
 BTN_MAP = {
-    0: "B", 1: "Y", 2: "A", 3: "X",
-    4: "LB", 5: "RB", 6: "Back", 7: "Start",
+    0: "A", 1: "B", 2: "LB", 3: "X",
+    4: "Y", 5: "RB", 6: "Back", 7: "Start",
     8: "Guide", 9: "LStick", 10: "RStick",
 }
 
@@ -34,7 +34,11 @@ class JoystickController:
         self.current_vec = [0.0, 0.0, 0.0, 0.0]
 
         # 初始化 AY 軸角度
-        self.ay_axis_angle = self.cfg.get('robot_arm_control', {}).get('ay_axis_initial_angle', 0.0)
+        control_cfg = self.cfg.get('robot_arm_control', {})
+        self.ay_axis_angle = control_cfg.get('ay_axis_initial_angle', 0.0)
+        max_angle = control_cfg.get('ay_axis_max_angle', 90.0)
+        min_angle = control_cfg.get('ay_axis_min_angle', -90.0)
+        self.ay_axis_angle = max(min_angle, min(self.ay_axis_angle, max_angle))
         self.last_ay_button = None
 
     def process_events(self, ros_pub):
@@ -62,11 +66,16 @@ class JoystickController:
             control_cfg = self.cfg['robot_arm_control']
             increment = control_cfg.get('angle_increment', 10.0)
             decrement = control_cfg.get('angle_decrement', -10.0)
+            max_angle = control_cfg.get('ay_axis_max_angle', 90.0)
+            min_angle = control_cfg.get('ay_axis_min_angle', -90.0)
             
             if name == 'B':
                 self.ay_axis_angle += increment
             elif name == 'X':
                 self.ay_axis_angle += decrement
+
+            # 限制角度在最大值和最小值之間
+            self.ay_axis_angle = max(min_angle, min(self.ay_axis_angle, max_angle))
 
             joint_angles = self.cfg['robot_arm_joints'][self.last_ay_button][:]
             joint_angles[-1] = self.ay_axis_angle
