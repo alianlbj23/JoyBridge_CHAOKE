@@ -24,6 +24,8 @@ class JoystickController:
 
         self.current_vec = [0.0, 0.0, 0.0, 0.0]
 
+        self.current_angle = None
+
         # 初始化 AY 軸角度
         control_cfg = self.cfg.get('robot_arm_control', {})
         self.ay_axis_angle = control_cfg.get('ay_axis_initial_angle', 0.0)
@@ -76,25 +78,32 @@ class JoystickController:
 
     def _handle_button_down(self, event, ros_pub):
         name = BTN_MAP.get(event.button, f"BTN{event.button}")
-        
+
         # 處理機械手臂按鈕 (A 和 Y)
         if name in ['A', 'Y'] and 'robot_arm_joints' in self.cfg:
             if name in self.cfg['robot_arm_joints']:
                 self.last_ay_button = name
+                # 重設 ay_axis_angle 為初始值
+                control_cfg = self.cfg.get('robot_arm_control', {})
+                self.ay_axis_angle = control_cfg.get('ay_axis_initial_angle', 0.0)
                 joint_angles = self.cfg['robot_arm_joints'][name][:]
+                self.current_angle = joint_angles[:]
                 joint_angles[-1] = self.ay_axis_angle
                 ros_pub.send_arm_joints(joint_angles)
-                print(f"[ARM BTN] {name} -> {joint_angles}°")
+                # print(f"[ARM BTN] {name} -> {joint_angles}°")
                 return
 
         # 處理X, B 手臂角度調整
         if name in ['X', 'B'] and 'robot_arm_control' in self.cfg and self.last_ay_button:
+            if self.current_angle == None:
+                print("You need press A or Y first.")
+                return
             control_cfg = self.cfg['robot_arm_control']
             increment = control_cfg.get('angle_increment', 10.0)
             decrement = control_cfg.get('angle_decrement', -10.0)
             max_angle = control_cfg.get('ay_axis_max_angle', 90.0)
             min_angle = control_cfg.get('ay_axis_min_angle', -90.0)
-            
+
             if name == 'B':
                 self.ay_axis_angle += increment
             elif name == 'X':
@@ -103,8 +112,9 @@ class JoystickController:
             # 限制角度在最大值和最小值之間
             self.ay_axis_angle = max(min_angle, min(self.ay_axis_angle, max_angle))
 
-            joint_angles = self.cfg['robot_arm_joints'][self.last_ay_button][:]
-            joint_angles[-1] = self.ay_axis_angle
+            # joint_angles = self.cfg['robot_arm_joints'][self.last_ay_button][:]
+            joint_angles = self.current_angle[:]
+            joint_angles[-1] = 90
             ros_pub.send_arm_joints(joint_angles)
             print(f"[ARM BTN] {name} -> New Angle: {self.ay_axis_angle}°")
             return

@@ -83,5 +83,6 @@ ros_topics:
 
 # 機械手臂 ROS Topic 設定
 robot_arm_topic:
-  name: /robot_arm
-  msg_type: trajectory_msgs/JointTrajectoryPoint
+  name: /joint_trajectory_controller/joint_trajectory
+  msg_type: trajectory_msgs/JointTrajectory
+  joint_names: [joint1, joint2, joint3] # 關節名稱，順序必須與硬體對應

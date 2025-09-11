@@ -1,6 +1,6 @@
 import roslibpy
 import math
-
+import time
 class RosPublisher:
     def __init__(self, client, topics_config, arm_config=None):
         self.publishers = []
@@ -9,14 +9,15 @@ class RosPublisher:
                 'indices': t['indices'],
                 'pub': roslibpy.Topic(client, t['name'], 'std_msgs/Float32MultiArray')
             })
-        
+
         # 機械手臂發布器
         self.arm_publisher = None
-        if arm_config:
+        self.arm_config = arm_config
+        if self.arm_config:
             self.arm_publisher = roslibpy.Topic(
-                client, 
-                arm_config['name'], 
-                arm_config['msg_type']
+                client,
+                self.arm_config['name'],
+                self.arm_config['msg_type']
             )
 
     def send_arm_joints(self, joint_angles_deg):
@@ -24,16 +25,21 @@ class RosPublisher:
         if self.arm_publisher:
             # 將角度從度轉換為弧度
             joint_angles_rad = [math.radians(angle) for angle in joint_angles_deg]
-            
-            # 創建 JointTrajectoryPoint 消息
+
+            # 創建 JointTrajectory message
             msg = {
-                'positions': joint_angles_rad,
-                'velocities': [],
-                'accelerations': [],
-                'effort': [],
-                'time_from_start': {'secs': 0, 'nsecs': 0}
+                'joint_names': self.arm_config.get('joint_names', []),
+                'points': [
+                    {
+                        'positions': joint_angles_rad,
+                        'velocities': [],
+                        'accelerations': [],
+                        'effort': [],
+                        'time_from_start': {'secs': 1, 'nsecs': 0}
+                    }
+                ]
             }
-            
+
             self.arm_publisher.publish(roslibpy.Message(msg))
             print(f"[ARM] Published joint angles: {joint_angles_deg}° -> {joint_angles_rad} rad")
 
