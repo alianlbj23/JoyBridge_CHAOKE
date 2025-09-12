@@ -41,3 +41,39 @@ The JoyBridge application works as follows:
    ```bash
    python main.py config.yaml
    ```
+   or
+   ```bash
+   run.sh
+   ```
+
+## Desktop Shortcut (Optional)
+To start JoyBridge by simply tapping an icon on the touchscreen, create a .desktop launcher:
+1. Create a launcher file on your Desktop:
+
+   ```
+   cat > ~/Desktop/JoyBridge.desktop <<'EOF'
+   [Desktop Entry]
+   Type=Application
+   Name=JoyBridge (Start)
+   Comment=Start JoyBridge in venv
+   Exec=/home/<YOUR_USER>/workspace/JoyBridge_CHAOKE/run.sh
+   Terminal=true
+   Icon=utilities-terminal
+   Categories=Utility;
+   EOF
+   ```
+
+   Replace <YOUR_USER> with your username and make sure run_joybridge.sh (or your startup script) is executable:
+
+   ```
+   chmod +x ~/workspace/JoyBridge_CHAOKE/run_joybridge.sh
+   ```
+
+2. Mark the shortcut as trusted and executable:
+
+   ```
+   chmod 755 ~/Desktop/JoyBridge.desktop
+   gio set ~/Desktop/JoyBridge.desktop metadata::trusted true
+   ```
+
+3. Log into the desktop environment on the Jetson or PC where the joystick is connected, then tap the JoyBridge icon on the touchscreen to start the program.
