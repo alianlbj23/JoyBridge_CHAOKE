@@ -40,9 +40,6 @@ The JoyBridge application works as follows:
 3. **Run the application:**
    ```bash
    python main.py config.yaml
-<<<<<<< Updated upstream
-   ```
-=======
    ```
    or
    ```bash
@@ -63,4 +60,3 @@ If you want to launch JoyBridge by tapping an icon on the touchscreen, use the f
 - You should now see a JoyBridge (Start) icon on your Desktop.
 - If your desktop environment requires it, right-click → Allow Launching.
 - Tap the icon to start JoyBridge.
->>>>>>> Stashed changes
