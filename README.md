@@ -40,4 +40,27 @@ The JoyBridge application works as follows:
 3. **Run the application:**
    ```bash
    python main.py config.yaml
+<<<<<<< Updated upstream
    ```
+=======
+   ```
+   or
+   ```bash
+   run.sh
+   ```
+
+## Desktop Shortcut (Optional)
+If you want to launch JoyBridge by tapping an icon on the touchscreen, use the following script to automatically create a valid `.desktop` launcher.
+
+1. Run the script to generate the desktop launcher
+
+   ```
+   ./create_joybridge_desktop.sh
+   ```
+
+2. Check and test the launcher
+
+- You should now see a JoyBridge (Start) icon on your Desktop.
+- If your desktop environment requires it, right-click → Allow Launching.
+- Tap the icon to start JoyBridge.
+>>>>>>> Stashed changes
