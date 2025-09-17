@@ -32,7 +32,7 @@ class JoystickController:
         self.ay_axis_angle = max(min_angle, min(self.ay_axis_angle, max_angle))
         self.last_ay_button = None
 
-    def _reconnect_joystick(self):
+    def _reconnect_joystick(self, ros_pub=None):
         pygame.joystick.quit()
         pygame.joystick.init()
         if pygame.joystick.get_count() > 0:
@@ -43,6 +43,10 @@ class JoystickController:
         else:
             if self.joystick is not None:
                 print("Joystick disconnected. Waiting for reconnection...")
+                if ros_pub and 'BTN13' in self.cfg['buttons']:
+                    btn13_signal = self.cfg['buttons']['BTN13']
+                    ros_pub.send(btn13_signal)
+                    print(f"[BTN DISCONNECTED] -> {btn13_signal}")
             else:
                 print("No joystick detected. Waiting for connection...")
             self.joystick = None
@@ -50,7 +54,7 @@ class JoystickController:
 
     def process_events(self, ros_pub):
         if self.joystick is None:
-            self._reconnect_joystick()
+            self._reconnect_joystick(ros_pub)
             time.sleep(1) # wait a bit before retrying
             return
 
@@ -60,11 +64,11 @@ class JoystickController:
                 if e.type == pygame.JOYDEVICEADDED:
                     if self.joystick is None:
                         print("Joystick device added. Attempting to connect.")
-                        self._reconnect_joystick()
+                        self._reconnect_joystick(ros_pub)
                         break  # Exit the event loop and let the main loop continue
                 elif e.type == pygame.JOYDEVICEREMOVED:
                     print("Joystick device removed. Attempting to reconnect.")
-                    self._reconnect_joystick()
+                    self._reconnect_joystick(ros_pub)
                     break  # Exit the event loop and let the main loop continue
                 elif e.type == pygame.JOYBUTTONDOWN:
                     self._handle_button_down(e, ros_pub)
@@ -72,7 +76,7 @@ class JoystickController:
                     self._handle_axis_motion(e, ros_pub)
         except pygame.error as e:
             print(f"Joystick error: {e}. Attempting to reconnect.")
-            self._reconnect_joystick()
+            self._reconnect_joystick(ros_pub)
 
     def _handle_button_down(self, event, ros_pub):
         name = BTN_MAP.get(event.button, f"BTN{event.button}")
