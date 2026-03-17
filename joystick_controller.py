@@ -11,6 +11,7 @@ BTN_MAP = {
 
 AXIS_LEFT = (0, 1)
 AXIS_RIGHT = (2, 3)
+ZERO_VEC = [0.0, 0.0, 0.0, 0.0]
 
 class JoystickController:
     def __init__(self, cfg):
@@ -143,9 +144,16 @@ class JoystickController:
         y = self.joystick.get_axis(axis_tuple[1])
         stick_cfg = self.cfg['axes_angle_map'].get(stick_name, {})
         dead = stick_cfg.get('deadzone', DEADZONE_DEFAULT)
+
+        if stick_cfg.get('mode') == 'differential_drive':
+            max_output = stick_cfg.get('max_output', 30.0)
+            return Utils.differential_speed_from_axes(x, y, max_output, dead)
+
         angle = Utils.angle_from_axes(x, y, dead)
         if angle is not None and 'rules' in stick_cfg:
             return Utils.pick_speed_from_rules(angle, stick_cfg['rules'])
+        if angle is None and 'rules' in stick_cfg:
+            return ZERO_VEC[:]
         return None
 
     def _stick_angle_str(self, stick_name):
