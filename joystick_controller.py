@@ -129,15 +129,18 @@ class JoystickController:
         left_speed = self._process_stick(AXIS_LEFT, 'left_stick')
         right_speed = self._process_stick(AXIS_RIGHT, 'right_stick')
 
-        if left_speed is not None:
-            self.current_vec = left_speed
-        if right_speed is not None:
+        if left_speed is not None and right_speed is not None:
             self.current_vec = right_speed
+        elif left_speed is not None:
+            self.current_vec = left_speed
+        elif right_speed is not None:
+            self.current_vec = right_speed
+        else:
+            self.current_vec = ZERO_VEC[:]
 
-        if left_speed is not None or right_speed is not None:
-            ros_pub.send(self.current_vec)
-            print(f"[AXIS] L={self._stick_angle_str('left_stick')}, "
-                  f"R={self._stick_angle_str('right_stick')} -> {self.current_vec}")
+        ros_pub.send(self.current_vec)
+        print(f"[AXIS] L={self._stick_angle_str('left_stick')}, "
+              f"R={self._stick_angle_str('right_stick')} -> {self.current_vec}")
 
     def _process_stick(self, axis_tuple, stick_name):
         x = self.joystick.get_axis(axis_tuple[0])
@@ -147,13 +150,14 @@ class JoystickController:
 
         if stick_cfg.get('mode') == 'differential_drive':
             max_output = stick_cfg.get('max_output', 30.0)
+            angle = Utils.angle_from_axes(x, y, dead)
+            if angle is None:
+                return None
             return Utils.differential_speed_from_axes(x, y, max_output, dead)
 
         angle = Utils.angle_from_axes(x, y, dead)
         if angle is not None and 'rules' in stick_cfg:
             return Utils.pick_speed_from_rules(angle, stick_cfg['rules'])
-        if angle is None and 'rules' in stick_cfg:
-            return ZERO_VEC[:]
         return None
 
     def _stick_angle_str(self, stick_name):
