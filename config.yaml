@@ -29,6 +29,11 @@ robot_arm_control:
   ay_axis_max_angle: 90.0       # AY軸的最大角度
   ay_axis_min_angle: 0.0      # AY軸的最小角度
 
+cmd_vel:
+  max_linear_speed: 0.5
+  max_angular_speed: 3.9
+  deadzone: 0.15
+
 # 搖桿角度映射 (角度區間 → 車輪速度)
 axes_angle_map:
   left_stick:
@@ -86,3 +91,7 @@ ros_topics:
 robot_arm_topic:
   name: /robot_arm
   msg_type: trajectory_msgs/JointTrajectoryPoint
+
+cmd_vel_topic:
+  name: /base_controller/cmd_vel
+  msg_type: geometry_msgs/TwistStamped

@@ -24,7 +24,8 @@ class JoyToRosApp:
         self.ros_pub = RosPublisher(
             self.ros_client, 
             self.cfg['ros_topics'],
-            self.cfg.get('robot_arm_topic')
+            self.cfg.get('robot_arm_topic'),
+            self.cfg.get('cmd_vel_topic')
         )
 
         try:

@@ -2,13 +2,21 @@ import roslibpy
 import math
 
 class RosPublisher:
-    def __init__(self, client, topics_config, arm_config=None):
+    def __init__(self, client, topics_config, arm_config=None, cmd_vel_config=None):
         self.publishers = []
         for t in topics_config:
             self.publishers.append({
                 'indices': t['indices'],
                 'pub': roslibpy.Topic(client, t['name'], 'std_msgs/Float32MultiArray')
             })
+
+        self.cmd_vel_publisher = None
+        if cmd_vel_config:
+            self.cmd_vel_publisher = roslibpy.Topic(
+                client,
+                cmd_vel_config['name'],
+                cmd_vel_config['msg_type']
+            )
         
         # 機械手臂發布器
         self.arm_publisher = None
@@ -43,8 +51,25 @@ class RosPublisher:
             msg = {'layout': {'dim': [], 'data_offset': 0}, 'data': data_part}
             item['pub'].publish(roslibpy.Message(msg))
 
+    def send_cmd_vel(self, linear_x, angular_z):
+        if not self.cmd_vel_publisher:
+            return
+
+        msg = {
+            'header': {
+                'frame_id': 'base_link'
+            },
+            'twist': {
+                'linear': {'x': linear_x, 'y': 0.0, 'z': 0.0},
+                'angular': {'x': 0.0, 'y': 0.0, 'z': angular_z}
+            }
+        }
+        self.cmd_vel_publisher.publish(roslibpy.Message(msg))
+
     def close(self):
         for item in self.publishers:
             item['pub'].unadvertise()
+        if self.cmd_vel_publisher:
+            self.cmd_vel_publisher.unadvertise()
         if self.arm_publisher:
             self.arm_publisher.unadvertise()

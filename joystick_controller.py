@@ -1,6 +1,6 @@
 import pygame
 import time
-from utils import Utils, DEADZONE_DEFAULT
+from utils import DEADZONE_DEFAULT
 
 # btn mapping
 BTN_MAP = {
@@ -10,7 +10,6 @@ BTN_MAP = {
 }
 
 AXIS_LEFT = (0, 1)
-AXIS_RIGHT = (2, 3)
 
 class JoystickController:
     def __init__(self, cfg):
@@ -23,6 +22,15 @@ class JoystickController:
         self._reconnect_joystick()
 
         self.current_vec = [0.0, 0.0, 0.0, 0.0]
+        cmd_vel_cfg = self.cfg.get('cmd_vel', {})
+        self.max_linear_speed = cmd_vel_cfg.get('max_linear_speed', 0.5)
+        self.max_angular_speed = cmd_vel_cfg.get('max_angular_speed', 2.0)
+        self.cmd_vel_deadzone = cmd_vel_cfg.get('deadzone', DEADZONE_DEFAULT)
+        self.current_cmd_vel = {
+            'linear_x': 0.0,
+            'angular_z': 0.0
+        }
+        self.last_published_cmd_vel = None
 
         # 初始化 AY 軸角度
         control_cfg = self.cfg.get('robot_arm_control', {})
@@ -73,10 +81,12 @@ class JoystickController:
                 elif e.type == pygame.JOYBUTTONDOWN:
                     self._handle_button_down(e, ros_pub)
                 elif e.type == pygame.JOYAXISMOTION:
-                    self._handle_axis_motion(e, ros_pub)
+                    self._handle_axis_motion(e)
         except pygame.error as e:
             print(f"Joystick error: {e}. Attempting to reconnect.")
             self._reconnect_joystick(ros_pub)
+
+        self._publish_cmd_vel(ros_pub)
 
     def _handle_button_down(self, event, ros_pub):
         name = BTN_MAP.get(event.button, f"BTN{event.button}")
@@ -119,38 +129,43 @@ class JoystickController:
             ros_pub.send(self.current_vec)
             print(f"[BTN DOWN] {name} -> {self.current_vec}")
 
-    def _handle_axis_motion(self, event, ros_pub):
+    def _handle_axis_motion(self, event):
         val = self.joystick.get_axis(event.axis)
         if abs(val - self.last_axes[event.axis]) < 0.05:
             return
         self.last_axes[event.axis] = val
 
-        left_speed = self._process_stick(AXIS_LEFT, 'left_stick')
-        right_speed = self._process_stick(AXIS_RIGHT, 'right_stick')
+        self.current_cmd_vel = self._process_cmd_vel_stick(AXIS_LEFT)
 
-        if left_speed is not None:
-            self.current_vec = left_speed
-        if right_speed is not None:
-            self.current_vec = right_speed
-
-        if left_speed is not None or right_speed is not None:
-            ros_pub.send(self.current_vec)
-            print(f"[AXIS] L={self._stick_angle_str('left_stick')}, "
-                  f"R={self._stick_angle_str('right_stick')} -> {self.current_vec}")
-
-    def _process_stick(self, axis_tuple, stick_name):
+    def _process_cmd_vel_stick(self, axis_tuple):
         x = self.joystick.get_axis(axis_tuple[0])
         y = self.joystick.get_axis(axis_tuple[1])
-        stick_cfg = self.cfg['axes_angle_map'].get(stick_name, {})
-        dead = stick_cfg.get('deadzone', DEADZONE_DEFAULT)
-        angle = Utils.angle_from_axes(x, y, dead)
-        if angle is not None and 'rules' in stick_cfg:
-            return Utils.pick_speed_from_rules(angle, stick_cfg['rules'])
-        return None
 
-    def _stick_angle_str(self, stick_name):
-        axis_tuple = AXIS_LEFT if stick_name == 'left_stick' else AXIS_RIGHT
-        x = self.joystick.get_axis(axis_tuple[0])
-        y = self.joystick.get_axis(axis_tuple[1])
-        angle = Utils.angle_from_axes(x, y, DEADZONE_DEFAULT)
-        return f"{angle:.1f}°" if angle is not None else "None"
+        if abs(x) < self.cmd_vel_deadzone:
+            x = 0.0
+        if abs(y) < self.cmd_vel_deadzone:
+            y = 0.0
+
+        linear_x = -y * self.max_linear_speed
+
+        return {
+            'linear_x': linear_x,
+            'angular_z': -x * self.max_angular_speed
+        }
+
+    def _publish_cmd_vel(self, ros_pub):
+        self.current_cmd_vel = self._process_cmd_vel_stick(AXIS_LEFT)
+        ros_pub.send_cmd_vel(
+            self.current_cmd_vel['linear_x'],
+            self.current_cmd_vel['angular_z']
+        )
+        rounded_cmd_vel = (
+            round(self.current_cmd_vel['linear_x'], 3),
+            round(self.current_cmd_vel['angular_z'], 3)
+        )
+        if rounded_cmd_vel != self.last_published_cmd_vel:
+            self.last_published_cmd_vel = rounded_cmd_vel
+            print(
+                f"[cmd_vel] linear.x={self.current_cmd_vel['linear_x']:.3f} m/s, "
+                f"angular.z={self.current_cmd_vel['angular_z']:.3f} rad/s"
+            )
