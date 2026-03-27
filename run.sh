@@ -1,20 +1,21 @@
 #!/bin/bash
-# Get the directory where the script is located
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$SCRIPT_DIR" || exit 1
 
-# Change to the script's directory to ensure paths are correct
-cd "$SCRIPT_DIR"
-
-# Activate virtual environment if it exists
-if [ -d ".venv" ]; then
-  echo "Activating virtual environment..."
-  source .venv/bin/activate
+VENV_PATH=""
+if [ -f "$SCRIPT_DIR/.venv/bin/activate" ]; then
+  VENV_PATH="$SCRIPT_DIR/.venv"
+elif [ -f "$SCRIPT_DIR/venv/bin/activate" ]; then
+  VENV_PATH="$SCRIPT_DIR/venv"
 fi
 
-# Run the python application
-echo "Starting JoyBridge..."
-python3 main.py config.yaml
+if [ -n "$VENV_PATH" ]; then
+  echo "Activating virtual environment: $VENV_PATH"
+  # shellcheck disable=SC1090
+  source "$VENV_PATH/bin/activate"
+else
+  echo "No local virtual environment found (.venv or venv). Running with system Python."
+fi
 
-source /home/jetson/workspace/JoyBridge_CHAOKE/venv/bin/activate
+echo "Starting JoyBridge..."
 python main.py config.yaml
-read -p "Press Enter to close..."
