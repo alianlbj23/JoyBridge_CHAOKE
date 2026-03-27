@@ -89,8 +89,10 @@ ros_topics:
 
 # 機械手臂 ROS Topic 設定
 robot_arm_topic:
-  name: /robot_arm
-  msg_type: trajectory_msgs/JointTrajectoryPoint
+  name: /arm_controller/joint_trajectory
+  msg_type: trajectory_msgs/JointTrajectory
+  joint_names: [arm_1_joint, arm_2_joint, gripper_joint]
+  time_from_start_sec: 1
 
 cmd_vel_topic:
   name: /base_controller/cmd_vel
